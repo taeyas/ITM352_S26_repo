@@ -1,22 +1,3 @@
-
-Conversation opened. 1 unread message.
-
-Skip to content
-Using University of Hawaii Mail with screen readers
-
-1 of 5,822
-ITM-352-001: Third try
-Inbox
-
-Rick Kazman <email@mail.lamaku.hawaii.edu>
-Attachments
-12:18 PM (0 minutes ago)
-to
-
-Rename this file.
-
- One attachment
-  •  Scanned by Gmail
 # Assign students to specific requirements based on their student ID.
 
 def generate_numbers(a_student_id, num_reqs):
