@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% block title %}Quiz — QuizMaster{% endblock %}
+
+{% block content %}
+<div class="quiz-wrap">
+
+  <!-- Progress bar -->
+  <div class="progress-bar-shell" role="progressbar" aria-label="Quiz progress">
+    <div class="progress-bar-fill" id="progress-fill"></div>
+  </div>
+  <div class="quiz-meta">
+    <span id="question-counter" class="q-counter">Question 1 of 10</span>
+    <div class="meta-right">
+      <span id="score-display" class="score-live">Score: 0</span>
+      <!-- 50/50 lifeline button — mirrors Assignment 1's "type 5050" option -->
+      <button id="lifeline-btn" class="btn-lifeline" onclick="useLifeline()" title="Remove 2 wrong answers">
+        🎲 50/50
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading state -->
+  <div id="loading-state" class="card loading-card">
+    <div class="spinner"></div>
+    <p>Loading questions…</p>
+  </div>
+
+  <!-- Question card -->
+  <div id="question-card" class="card question-card" style="display:none">
+    <p id="question-text" class="question-text"></p>
+
+    <!-- Answer options rendered as labelled buttons (a/b/c/d) -->
+    <div id="options-list" class="options-list" role="list"></div>
+
+    <!-- Feedback panel shown after submitting an answer -->
+    <div id="feedback-box" class="feedback-box" style="display:none" aria-live="polite">
+      <p id="feedback-verdict"     class="feedback-verdict"></p>
+      <p id="feedback-explanation" class="feedback-explanation"></p>
+      <button class="btn-primary" id="next-btn" onclick="nextQuestion()">
+        Next Question →
+      </button>
+    </div>
+  </div>
+
+  <!-- Error state -->
+  <div id="error-state" class="card error-card" style="display:none">
+    <p>⚠️ Could not load questions. Please <a href="/quiz">try again</a>.</p>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  /* ── State ── */
+  let questions     = [];   // array of {id, question, choices:{a:..,b:..,c:..,d:..}}
+  let currentIndex  = 0;
+  let correctCount  = 0;
+  let incorrectCount = 0;
+  let answered      = false;   // prevents double-clicking
+  let lifelineUsed  = false;   // mirrors Assignment 1's used_5050 flag
+
+  /* ── Boot ── */
+  document.addEventListener('DOMContentLoaded', loadQuiz);
+
+  async function loadQuiz() {
+    try {
+      const res = await fetch('/api/questions?count=10');
+      if (!res.ok) throw new Error('Failed to load');
+      const data = await res.json();
+      questions = data.questions;
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('question-card').style.display = 'block';
+      renderQuestion();
+    } catch (err) {
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('error-state').style.display   = 'block';
+    }
+  }
+
+  /* ── Render the current question ── */
+  function renderQuestion() {
+    const q     = questions[currentIndex];
+    const total = questions.length;
+    answered    = false;
+
+    // Progress bar and counter
+    document.getElementById('question-counter').textContent =
+      `Question ${currentIndex + 1} of ${total}`;
+    document.getElementById('progress-fill').style.width =
+      `${(currentIndex / total) * 100}%`;
+
+    // Question text
+    document.getElementById('question-text').textContent = q.question;
+
+    // Build answer buttons — one per letter key (a/b/c/d)
+    buildOptionButtons(q.choices, q.id);
+
+    // Reset feedback panel
+    const fb = document.getElementById('feedback-box');
+    fb.style.display = 'none';
+    fb.className = 'feedback-box';
+
+    // Re-enable lifeline button if not used
+    const lb = document.getElementById('lifeline-btn');
+    lb.disabled = lifelineUsed;
+    lb.classList.toggle('btn-lifeline--used', lifelineUsed);
+  }
+
+  /* ── Build option buttons from a choices dict ── */
+  function buildOptionButtons(choices, questionId) {
+    const list = document.getElementById('options-list');
+    list.innerHTML = Object.entries(choices).map(([letter, text]) => `
+      <button
+        class="option-btn"
+        role="listitem"
+        data-letter="${letter}"
+        onclick="selectOption(this, '${letter}', ${questionId})">
+        <span class="option-letter">${letter.toUpperCase()}</span>
+        <span class="option-text">${escHtml(text)}</span>
+      </button>
+    `).join('');
+  }
+
+  /* ── 50/50 Lifeline — mirrors Assignment 1's fifty_fifty() ── */
+  async function useLifeline() {
+    if (lifelineUsed || answered) return;
+
+    const q   = questions[currentIndex];
+    const res = await fetch('/api/fifty_fifty', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ question_id: q.id })
+    });
+    const data = await res.json();
+
+    if (data.error) {
+      alert(data.error);
+      return;
+    }
+
+    // Update local question choices with the trimmed set and re-render buttons
+    questions[currentIndex].choices = data.choices;
+    buildOptionButtons(data.choices, q.id);
+
+    lifelineUsed = true;
+    const lb = document.getElementById('lifeline-btn');
+    lb.disabled = true;
+    lb.classList.add('btn-lifeline--used');
+    lb.textContent = '🎲 50/50 (used)';
+  }
+
+  /* ── Handle answer selection ── */
+  async function selectOption(btn, selectedLetter, questionId) {
+    if (answered) return;
+    answered = true;
+
+    // Disable all option buttons while we wait for server response
+    document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+
+    const res = await fetch('/api/submit_answer', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ question_id: questionId, selected_option: selectedLetter })
+    });
+    const data = await res.json();
+
+    // Colour buttons: green for correct, red for the wrong selection
+    document.querySelectorAll('.option-btn').forEach(b => {
+      if (b.dataset.letter === data.correct_letter) {
+        b.classList.add('option-correct');
+      } else if (b.dataset.letter === selectedLetter && !data.correct) {
+        b.classList.add('option-wrong');
+      }
+    });
+
+    // Update counters
+    if (data.correct) { correctCount++;   }
+    else              { incorrectCount++; }
+    document.getElementById('score-display').textContent =
+      `Score: ${correctCount}`;
+
+    // Show feedback panel with verdict and explanation
+    const fb = document.getElementById('feedback-box');
+    fb.style.display = 'block';
+    fb.classList.add(data.correct ? 'feedback-correct' : 'feedback-wrong');
+
+    document.getElementById('feedback-verdict').textContent = data.correct
+      ? '✅ Correct!'
+      : `❌ Incorrect — the answer was ${data.correct_letter.toUpperCase()}) ${data.correct_answer}`;
+    document.getElementById('feedback-explanation').textContent = data.explanation;
+
+    // Change button label on last question
+    document.getElementById('next-btn').textContent =
+      currentIndex === questions.length - 1 ? 'See Results →' : 'Next Question →';
+  }
+
+  /* ── Advance to next question or finish ── */
+  async function nextQuestion() {
+    currentIndex++;
+    if (currentIndex >= questions.length) {
+      await finishQuiz();
+    } else {
+      renderQuestion();
+    }
+  }
+
+  /* ── Post final score, then redirect to results page ── */
+  async function finishQuiz() {
+    const total = questions.length;
+    await fetch('/api/save_score', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        score:     correctCount,
+        total:     total,
+        correct:   correctCount,
+        incorrect: incorrectCount
+      })
+    });
+    location.href =
+      `/results?score=${correctCount}&total=${total}&correct=${correctCount}&incorrect=${incorrectCount}`;
+  }
+
+  /* ── Escape HTML special chars in button text ── */
+  function escHtml(str) {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+</script>
+{% endblock %}

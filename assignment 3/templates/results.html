@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Results — QuizMaster{% endblock %}
+
+{% block content %}
+<div class="results-wrap">
+  <div class="card results-card" id="results-card">
+    <div class="spinner" style="margin:2rem auto"></div>
+  </div>
+  <div class="blob blob-1" aria-hidden="true"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (async function init() {
+    const params    = new URLSearchParams(location.search);
+    const correct   = parseInt(params.get('correct')   || 0);
+    const incorrect = parseInt(params.get('incorrect') || 0);
+    const total     = parseInt(params.get('total')     || 10);
+    const pct       = Math.round(correct / total * 100);
+
+    // Get high score info from the server
+    const res  = await fetch('/api/user_history');
+    const data = await res.json();
+
+    let grade, gradeClass;
+    if      (pct >= 90) { grade = 'Outstanding 🏆';     gradeClass = 'grade-gold';  }
+    else if (pct >= 70) { grade = 'Great Work 🎉';       gradeClass = 'grade-green'; }
+    else if (pct >= 50) { grade = 'Good Effort 👍';      gradeClass = 'grade-blue';  }
+    else                { grade = 'Keep Practising 💪';  gradeClass = 'grade-red';   }
+
+    const newHighBanner = correct >= data.high_score && correct > 0
+      ? `<div class="new-high-banner">🌟 New Personal Best!</div>`
+      : '';
+
+    document.getElementById('results-card').innerHTML = `
+      ${newHighBanner}
+      <div class="grade-badge ${gradeClass}">${grade}</div>
+      <div class="final-score">${correct}<span class="score-label">/${total}</span></div>
+      <div class="stats-grid">
+        <div class="stat-cell">
+          <span class="stat-num correct-num">${correct}</span>
+          <span class="stat-label">Correct</span>
+        </div>
+        <div class="stat-cell">
+          <span class="stat-num wrong-num">${incorrect}</span>
+          <span class="stat-label">Incorrect</span>
+        </div>
+        <div class="stat-cell">
+          <span class="stat-num">${pct}%</span>
+          <span class="stat-label">Accuracy</span>
+        </div>
+      </div>
+      <p class="personal-best">Personal best: <strong>${data.high_score}/10</strong></p>
+      <div class="results-actions">
+        <a href="/quiz" class="btn-primary">Play Again →</a>
+        <a href="/"    class="btn-ghost">Home</a>
+      </div>
+    `;
+  })();
+</script>
+{% endblock %}
