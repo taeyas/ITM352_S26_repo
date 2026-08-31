@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Welcome — QuizMaster{% endblock %}
+
+{% block content %}
+<div class="welcome-wrap">
+
+  <!-- Returning user view -->
+  <div id="returning-view" class="card hero-card" style="display:none">
+    <div class="hero-badge">👋 Welcome back!</div>
+    <h1 class="hero-title">Hey, <span id="return-name"></span>!</h1>
+    <p class="hero-sub">Personal best: <strong id="return-highscore"></strong></p>
+    <a href="/quiz" class="btn-primary btn-large">Start Quiz →</a>
+  </div>
+
+  <!-- First-time visitor view -->
+  <div id="new-user-view" class="card hero-card">
+    <div class="hero-badge">🧠 Test Your Knowledge</div>
+    <h1 class="hero-title">Welcome to<br/><em>QuizMaster</em></h1>
+    <p class="hero-sub">10 randomised questions. Instant feedback. Track your high score.</p>
+
+    <div class="name-form">
+      <label for="name-input" class="form-label">What's your name?</label>
+      <div class="input-row">
+        <input type="text" id="name-input" class="text-input"
+               placeholder="Enter your name…" maxlength="50" />
+        <button class="btn-primary" onclick="submitName()">Let's go →</button>
+      </div>
+      <p id="name-error" class="field-error" aria-live="polite"></p>
+    </div>
+  </div>
+
+  <div class="blob blob-1" aria-hidden="true"></div>
+  <div class="blob blob-2" aria-hidden="true"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // On load: check for existing username cookie and show the right view
+  (async function init() {
+    const res  = await fetch('/api/user_history');
+    const data = await res.json();
+
+    if (data.username) {
+      document.getElementById('new-user-view').style.display = 'none';
+      document.getElementById('returning-view').style.display = 'block';
+      document.getElementById('return-name').textContent = data.username;
+      document.getElementById('return-highscore').textContent = data.high_score + '/10';
+    }
+  })();
+
+  async function submitName() {
+    const input = document.getElementById('name-input');
+    const error = document.getElementById('name-error');
+    const name  = input.value.trim();
+    error.textContent = '';
+
+    if (!name) { error.textContent = 'Please enter your name.'; return; }
+
+    const res  = await fetch('/api/set_user', {
+      method:  'POST',
+      headers: {'Content-Type': 'application/json'},
+      body:    JSON.stringify({name})
+    });
+    const data = await res.json();
+
+    if (data.error) { error.textContent = data.error; }
+    else            { location.href = '/quiz'; }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('name-input')
+      .addEventListener('keydown', e => { if (e.key === 'Enter') submitName(); });
+  });
+</script>
+{% endblock %}

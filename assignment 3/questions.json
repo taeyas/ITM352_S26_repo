@@ -1,0 +1,86 @@
+[
+  {
+    "id": 1,
+    "question": "What is the capital of France?",
+    "choices": { "a": "Berlin", "b": "Madrid", "c": "Paris", "d": "Rome" },
+    "answer": "c",
+    "explanation": "Paris has been the capital of France since 987 AD and is home to landmarks like the Eiffel Tower."
+  },
+  {
+    "id": 2,
+    "question": "Which planet is known as the Red Planet?",
+    "choices": { "a": "Venus", "b": "Mars", "c": "Jupiter", "d": "Saturn" },
+    "answer": "b",
+    "explanation": "Mars appears red due to iron oxide (rust) on its surface, earning it the nickname the Red Planet."
+  },
+  {
+    "id": 3,
+    "question": "What is the largest ocean on Earth?",
+    "choices": { "a": "Atlantic Ocean", "b": "Indian Ocean", "c": "Arctic Ocean", "d": "Pacific Ocean" },
+    "answer": "d",
+    "explanation": "The Pacific Ocean covers about 165 million square kilometres, more than all land masses combined."
+  },
+  {
+    "id": 4,
+    "question": "Who wrote 'Romeo and Juliet'?",
+    "choices": { "a": "Charles Dickens", "b": "William Shakespeare", "c": "Jane Austen", "d": "Mark Twain" },
+    "answer": "b",
+    "explanation": "William Shakespeare wrote Romeo and Juliet around 1594-1596. It remains one of the most performed plays ever."
+  },
+  {
+    "id": 5,
+    "question": "What is the chemical symbol for gold?",
+    "choices": { "a": "Ag", "b": "Fe", "c": "Au", "d": "Pb" },
+    "answer": "c",
+    "explanation": "Au comes from the Latin word 'Aurum', meaning gold. It has been used as currency for thousands of years."
+  },
+  {
+    "id": 6,
+    "question": "How many sides does a hexagon have?",
+    "choices": { "a": "5", "b": "6", "c": "7", "d": "8" },
+    "answer": "b",
+    "explanation": "A hexagon has exactly 6 sides. The word comes from Greek: 'hex' (six) + 'gonia' (angle)."
+  },
+  {
+    "id": 7,
+    "question": "What is the fastest land animal?",
+    "choices": { "a": "Lion", "b": "Horse", "c": "Cheetah", "d": "Greyhound" },
+    "answer": "c",
+    "explanation": "The cheetah can reach speeds of up to 75 mph (120 km/h) in short bursts, making it the fastest land animal."
+  },
+  {
+    "id": 8,
+    "question": "Which element has the atomic number 1?",
+    "choices": { "a": "Helium", "b": "Oxygen", "c": "Carbon", "d": "Hydrogen" },
+    "answer": "d",
+    "explanation": "Hydrogen is the lightest and most abundant element in the universe, with one proton and one electron."
+  },
+  {
+    "id": 9,
+    "question": "In which year did World War II end?",
+    "choices": { "a": "1943", "b": "1944", "c": "1945", "d": "1946" },
+    "answer": "c",
+    "explanation": "World War II ended in 1945 - Germany surrendered in May and Japan surrendered in September."
+  },
+  {
+    "id": 10,
+    "question": "What is the largest continent by area?",
+    "choices": { "a": "Africa", "b": "North America", "c": "Asia", "d": "Europe" },
+    "answer": "c",
+    "explanation": "Asia covers about 44.6 million km2, making it the largest continent, home to over 4.5 billion people."
+  },
+  {
+    "id": 11,
+    "question": "Which programming language was created by Guido van Rossum?",
+    "choices": { "a": "Java", "b": "Python", "c": "Ruby", "d": "C++" },
+    "answer": "b",
+    "explanation": "Guido van Rossum created Python in 1991, designing it with readability and simplicity as core principles."
+  },
+  {
+    "id": 12,
+    "question": "What is the smallest country in the world?",
+    "choices": { "a": "Monaco", "b": "San Marino", "c": "Liechtenstein", "d": "Vatican City" },
+    "answer": "d",
+    "explanation": "Vatican City covers just 0.44 km2 within Rome, making it the world's smallest independent state."
+  }
+]

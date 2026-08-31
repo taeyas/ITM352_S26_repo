@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Responsive viewport — required for mobile-first layout -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}QuizMaster{% endblock %}</title>
+
+  <!-- Google Fonts: Syne (display) + DM Sans (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <header class="site-header">
+    <a href="/" class="logo">Quiz<span>Master</span></a>
+    <nav class="header-nav">
+      <span id="header-username"></span>
+      <button id="reset-btn" class="btn-ghost" style="display:none" onclick="resetUser()">Reset</button>
+    </nav>
+  </header>
+
+  <main class="page-main">
+    {% block content %}{% endblock %}
+  </main>
+
+  <script>
+    // Show username in header if cookie exists
+    function getCookie(name) {
+      const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+      return match ? decodeURIComponent(match[2]) : null;
+    }
+    const uname = getCookie('username');
+    if (uname) {
+      document.getElementById('header-username').textContent = '👤 ' + uname;
+      document.getElementById('reset-btn').style.display = 'inline-block';
+    }
+    async function resetUser() {
+      if (!confirm('Clear your name and score history?')) return;
+      await fetch('/api/clear_user', { method: 'POST' });
+      location.href = '/';
+    }
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
